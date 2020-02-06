@@ -1,4 +1,4 @@
-# github.com/tidwall/gjson v1.4.0
+# github.com/tidwall/gjson v1.3.6
 github.com/tidwall/gjson
 # github.com/tidwall/match v1.0.1
 github.com/tidwall/match

@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/sfomuseum/go-geojson-ld"
+	"github.com/sfomuseum/go-geojsonld"
 	"github.com/tidwall/pretty"
 	"log"
 	"os"
@@ -26,7 +26,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		body, err := geojson.AsGeoJSONLDWithReader(ctx, fh)
+		body, err := geojsonld.AsGeoJSONLDWithReader(ctx, fh)
 
 		if err != nil {
 			log.Fatal(err)

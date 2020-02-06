@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"io"
+	"io/ioutil"
 	"strings"
 )
 
@@ -51,6 +53,17 @@ func DefaultGeoJSONLDContext() map[string]interface{} {
 	return ctx
 }
 
+func AsGeoJSONLDWithReader(ctx context.Context, fh io.Reader) ([]byte, error) {
+
+	body, err := ioutil.ReadAll(fh)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return AsGeoJSONLD(ctx, body)
+}
+
 func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 
 	geojson_ctx := DefaultGeoJSONLDContext()
@@ -77,10 +90,10 @@ func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 			k_fq = fmt.Sprintf("https://github.com/whosonfirst/whosonfirst-properties/tree/master/properties/%s#%s", ns, pred)
 		} else {
 
-			k_fq = fmt.Sprintf("http://whosonfirst.org/#%s", k)
+			k_fq = fmt.Sprintf("x-urn:geojson:properties#%s", k)
 		}
 
-		geojson_ctx[k_fq] = v
+		geojson_ctx[k_fq] = v.Value()
 	}
 
 	body, err := sjson.SetBytes(body, "@context", geojson_ctx)

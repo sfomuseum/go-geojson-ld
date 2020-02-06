@@ -102,5 +102,12 @@ func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	id_rsp := gjson.GetBytes(body, "id")
+
+	if id_rsp.Exists() {
+
+		body, err = sjson.SetBytes(body, "id", id_rsp.String())
+	}
+
 	return body, nil
 }

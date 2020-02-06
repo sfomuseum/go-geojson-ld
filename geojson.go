@@ -74,7 +74,7 @@ func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 		return nil, errors.New("Missing properties")
 	}
 
-	for k, v := range props_rsp.Map() {
+	for k, _ := range props_rsp.Map() {
 
 		parts := strings.Split(k, ":")
 
@@ -93,7 +93,7 @@ func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 			k_fq = fmt.Sprintf("x-urn:geojson:properties#%s", k)
 		}
 
-		geojson_ctx[k_fq] = v.Value()
+		geojson_ctx[k_fq] = k
 	}
 
 	body, err := sjson.SetBytes(body, "@context", geojson_ctx)

@@ -1,8 +1,10 @@
 # go-geojson-ld
 
-## Important
+Go package for converting GeoJSON `Feature` records in to GeoJSON-LD records.
 
-This is work in progress.
+## Documentation
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/sfomuseum/go-geojson-ld.svg)](https://pkg.go.dev/github.com/sfomuseum/go-geojson-ld)
 
 ## See also
 

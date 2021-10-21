@@ -2,17 +2,17 @@ package geojsonld
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"io"
-	"io/ioutil"
 	"strings"
 )
 
+// NS_GEOJSON is the default namespace for GeoJSON-LD
 const NS_GEOJSON string = "https://purl.org/geojson/vocab#"
 
+// DefaultGeoJSONLDContext return a dictionary mapping GeoJSON property keys to their GeoJSON-LD @context equivalents.
 func DefaultGeoJSONLDContext() map[string]interface{} {
 
 	bbox := map[string]string{
@@ -53,17 +53,19 @@ func DefaultGeoJSONLDContext() map[string]interface{} {
 	return ctx
 }
 
-func AsGeoJSONLDWithReader(ctx context.Context, fh io.Reader) ([]byte, error) {
+// AsGeoJSONLDWithReader convert GeoJSON Feature data contained in r in to GeoJSON-LD.
+func AsGeoJSONLDWithReader(ctx context.Context, r io.Reader) ([]byte, error) {
 
-	body, err := ioutil.ReadAll(fh)
+	body, err := io.ReadAll(r)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to read Feature data, %w", err)
 	}
 
 	return AsGeoJSONLD(ctx, body)
 }
 
+// AsGeoJSONLDWithReader convert GeoJSON Feature data contained in body in to GeoJSON-LD.
 func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 
 	geojson_ctx := DefaultGeoJSONLDContext()
@@ -71,7 +73,7 @@ func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 	props_rsp := gjson.GetBytes(body, "properties")
 
 	if !props_rsp.Exists() {
-		return nil, errors.New("Missing properties")
+		return nil, fmt.Errorf("Missing properties element")
 	}
 
 	for k, _ := range props_rsp.Map() {
@@ -99,7 +101,7 @@ func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 	body, err := sjson.SetBytes(body, "@context", geojson_ctx)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to assign @context, %w", err)
 	}
 
 	id_rsp := gjson.GetBytes(body, "id")
@@ -107,6 +109,10 @@ func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 	if id_rsp.Exists() {
 
 		body, err = sjson.SetBytes(body, "id", id_rsp.String())
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to assign id, %w", err)
+		}
 	}
 
 	return body, nil

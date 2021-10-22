@@ -2,10 +2,12 @@ package geojsonld
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"io"
+	_ "log"
 	"strings"
 )
 
@@ -30,7 +32,7 @@ func DefaultGeoJSONLDContext() map[string]interface{} {
 		"@id":        "geojson:features",
 	}
 
-	ctx := map[string]interface{}{
+	geojson_ctx := map[string]interface{}{
 		"geojson":            NS_GEOJSON,
 		"Feature":            "geojson:Feature",
 		"FeatureCollection":  "geojson:FeatureCollection",
@@ -50,7 +52,7 @@ func DefaultGeoJSONLDContext() map[string]interface{} {
 		"type":               "@type",
 	}
 
-	return ctx
+	return geojson_ctx
 }
 
 // AsGeoJSONLDWithReader convert GeoJSON Feature data contained in r in to GeoJSON-LD.
@@ -76,6 +78,8 @@ func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 		return nil, fmt.Errorf("Missing properties element")
 	}
 
+	extra := make(map[string]string)
+
 	for k, _ := range props_rsp.Map() {
 
 		parts := strings.Split(k, ":")
@@ -85,20 +89,27 @@ func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 		if len(parts) == 2 {
 
 			ns := parts[0]
-			pred := parts[1]
 
-			// sudo make this dynamic / a callback / equivalent
+			_, exists := extra[ns]
 
-			k_fq = fmt.Sprintf("https://github.com/whosonfirst/whosonfirst-properties/tree/master/properties/%s#%s", ns, pred)
+			if exists {
+				continue
+			}
+
+			extra[ns] = fmt.Sprintf("https://github.com/whosonfirst/whosonfirst-properties/tree/master/properties/%s", ns)
+
 		} else {
 
 			k_fq = fmt.Sprintf("x-urn:geojson:properties#%s", k)
+			extra[k] = k_fq
 		}
-
-		geojson_ctx[k_fq] = k
 	}
 
-	body, err := sjson.SetBytes(body, "@context", geojson_ctx)
+	for k, v := range extra {
+		geojson_ctx[k] = v
+	}
+
+	body, err := sjson.SetBytes(body, "\\@context", geojson_ctx)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to assign @context, %w", err)
@@ -115,5 +126,18 @@ func AsGeoJSONLD(ctx context.Context, body []byte) ([]byte, error) {
 		}
 	}
 
-	return body, nil
+	var i interface{}
+	err = json.Unmarshal(body, &i)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to unmarshal geojson-ld, %w", err)
+	}
+
+	enc, err := json.Marshal(i)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to marshal geojson-ld, %w", err)
+	}
+
+	return enc, nil
 }

@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/sfomuseum/go-geojsonld"
-	"github.com/tidwall/pretty"
 	"log"
 	"os"
 )
@@ -31,8 +30,6 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		body = pretty.Pretty(body)
 
 		fmt.Println(string(body))
 	}
